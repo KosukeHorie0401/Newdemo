@@ -1,0 +1,20 @@
+[33m464b404[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m HEAD@{0}: reset: moving to origin/master
+[33m9a4c1db[m HEAD@{1}: commit: Initial commit
+[33m425f86f[m[33m ([m[1;31mcodecommit-origin/master[m[33m)[m HEAD@{2}: commit: Update database connection settings for RDS
+[33mb8ead21[m HEAD@{3}: commit: Add built WAR file
+[33m871bcb3[m HEAD@{4}: commit: Update .gitignore to allow specific WAR file
+[33m990b65c[m HEAD@{5}: commit: Update .gitignore to allow target directory and other changes
+[33m7e8ed3b[m HEAD@{6}: commit: Fix Procfile and build configuration for Elastic Beanstalk
+[33m691e1e9[m HEAD@{7}: commit: Add Procfile for Elastic Beanstalk
+[33m95b3290[m HEAD@{8}: commit: Initial commit
+[33m0901f47[m HEAD@{9}: checkout: moving from master to master
+[33m0901f47[m HEAD@{10}: checkout: moving from master to master
+[33m0901f47[m HEAD@{11}: checkout: moving from master to master
+[33m0901f47[m HEAD@{12}: commit: Initial commit
+[33m02fa9b0[m HEAD@{13}: merge main: Merge made by the 'ort' strategy.
+[33m8692512[m HEAD@{14}: checkout: moving from master to master
+[33m8692512[m HEAD@{15}: checkout: moving from main to master
+[33m558a6f8[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m HEAD@{16}: checkout: moving from master to main
+[33m8692512[m HEAD@{17}: commit: ローカルの変更をコミット
+[33ma371367[m HEAD@{18}: reset: moving to HEAD
+[33ma371367[m HEAD@{19}: commit (initial): Initial commit

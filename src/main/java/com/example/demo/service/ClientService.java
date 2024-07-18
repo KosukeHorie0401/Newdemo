@@ -7,13 +7,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Client;
+import com.example.demo.entity.User;
 import com.example.demo.repository.ClientRepository;
+import com.example.demo.repository.UserRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ClientService {
 
     @Autowired
     private ClientRepository clientRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     public List<Client> getAllClients() {
         return clientRepository.findAll();
@@ -24,13 +33,29 @@ public class ClientService {
     }
 
     public Client createClient(Client client) {
-        return clientRepository.save(client);
+        System.out.println("Received client data: " + client);
+        Client savedClient = clientRepository.save(client);
+        System.out.println("Saved client: " + savedClient);
+        return savedClient;
+    }
+
+    @Transactional
+    public Client saveClientWithUsers(Client client) {
+        Client savedClient = createClient(client);
+        if (client.getUsers() != null) {
+            for (User user : client.getUsers()) {
+                user.setClient(savedClient);
+                userService.createUser(user);
+            }
+        }
+        return savedClient;
     }
 
     public Client updateClient(Long id, Client clientDetails) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new RuntimeException("Client not found with id " + id));
-        client.setName(clientDetails.getName());
-        client.setEmail(clientDetails.getEmail());
+        client.setCompanyName(clientDetails.getCompanyName());
+        client.setRepresentativeName(clientDetails.getRepresentativeName());
+        client.setContactPersonName(clientDetails.getContactPersonName());
         return clientRepository.save(client);
     }
 

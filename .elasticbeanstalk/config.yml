@@ -1,0 +1,22 @@
+branch-defaults:
+  master:
+    environment: demo-dev
+    group_suffix: null
+environment-defaults:
+  demo-dev:
+    branch: null
+    repository: null
+global:
+  application_name: demo
+  branch: master
+  default_ec2_keyname: aws-eb
+  default_platform: Corretto 17 running on 64bit Amazon Linux 2
+  default_region: ap-northeast-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: demo-repo
+  sc: git
+  workspace_type: Application
