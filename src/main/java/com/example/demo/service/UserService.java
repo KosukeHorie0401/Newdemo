@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.YearMonth;
 
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.entity.Task;
@@ -104,5 +107,13 @@ public class UserService implements UserDetailsService {
     public List<Task> getUserTasks(Long userId) {
         User user = getUserById(userId);
         return taskRepository.findByUser(user);
+    }
+
+    public Map<YearMonth, List<Task>> getMonthlyUserTasks(Long userId) {
+        List<Task> tasks = getUserTasks(userId);
+        return tasks.stream()
+            .collect(Collectors.groupingBy(
+                task -> YearMonth.from(task.getTaskDate())
+            ));
     }
 }

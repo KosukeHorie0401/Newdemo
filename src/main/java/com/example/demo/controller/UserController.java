@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import com.example.demo.dto.TaskDTO;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
+import java.time.YearMonth;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -84,6 +86,22 @@ public class UserController {
             .collect(Collectors.toList());
         System.out.println("Retrieved tasks: " + taskDTOs);
         return ResponseEntity.ok(taskDTOs);
+    }
+
+    @GetMapping("/tasks/monthly")
+    public ResponseEntity<Map<YearMonth, List<TaskDTO>>> getMonthlyTasks(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        List<Task> tasks = userService.getUserTasks(userId);
+        Map<YearMonth, List<TaskDTO>> monthlyTasks = tasks.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.groupingBy(
+                task -> YearMonth.from(task.getTaskDate()),
+                Collectors.toList()
+            ));
+        return ResponseEntity.ok(monthlyTasks);
     }
 
     private TaskDTO convertToDTO(Task task) {
