@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.TaskDTO;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
+
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/users")
@@ -55,18 +59,41 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // 認証処理
-        if (userService.login(loginRequest)) {
-            return ResponseEntity.ok("Login successful");
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
+        System.out.println("到達");
+        User user = userService.login(loginRequest);
+        if (user != null) {
+            session.setAttribute("userId", user.getId());
+            return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<Task>> getUserTasks() {
-        List<Task> tasks = userService.getUserTasks();
-        return ResponseEntity.ok(tasks);
+    public ResponseEntity<List<TaskDTO>> getUserTasks(HttpSession session) {
+        System.out.println("getUserTasks called");
+        Long userId = (Long) session.getAttribute("userId");
+        System.out.println("userId from session: " + userId);
+        if (userId == null) {
+            return ResponseEntity.status(401).body(null);
+        }
+        List<Task> tasks = userService.getUserTasks(userId);
+        List<TaskDTO> taskDTOs = tasks.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+        System.out.println("Retrieved tasks: " + taskDTOs);
+        return ResponseEntity.ok(taskDTOs);
+    }
+
+    private TaskDTO convertToDTO(Task task) {
+        TaskDTO dto = new TaskDTO();
+        dto.setTaskId(task.getTaskId());
+        dto.setTaskName(task.getTaskName());
+        dto.setTaskDate(task.getTaskDate());
+        dto.setHours(task.getHours());
+        dto.setMinutes(task.getMinutes());
+        // 必要に応じて他のフィールドも設定
+        return dto;
     }
 }

@@ -2,9 +2,11 @@ package com.example.demo.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,19 +17,19 @@ import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Autowired
     private TaskRepository taskRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private SecurityContextService securityContextService; // New service injected
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -81,46 +83,26 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public boolean login(LoginRequest loginRequest) {
-        System.out.println("PasswordEncoder instance in login: " + System.identityHashCode(passwordEncoder));
-        
-        Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            System.out.println("User found: " + user.getUsername());
-            System.out.println("Encoded Password in DB: " + user.getPassword());
-            System.out.println("Password from LoginRequest: " + loginRequest.getPassword());
-            
-            String rawPassword = loginRequest.getPassword();
-            String encodedPasswordInDB = user.getPassword();
-            System.out.println("Raw password from login: " + rawPassword);
-            System.out.println("Encoded password in DB: " + encodedPasswordInDB);
-            boolean matches = passwordEncoder.matches(rawPassword, encodedPasswordInDB);
-            System.out.println("Password matches: " + matches);
-            
-            // 追加のデバッグ情報
-            System.out.println("Raw password length: " + rawPassword.length());
-            System.out.println("Encoded password length: " + encodedPasswordInDB.length());
-            
-            // デバッグ用：手動でエンコードして比較
-            String manuallyEncodedPassword = passwordEncoder.encode(rawPassword);
-            System.out.println("Manually encoded password: " + manuallyEncodedPassword);
-            System.out.println("Manual comparison: " + encodedPasswordInDB.equals(manuallyEncodedPassword));
-            
-            if (matches) {
-                System.out.println("Password matches");
-                return true;
-            } else {
-                System.out.println("Password does not match");
-            }
-        } else {
-            System.out.println("User not found");
-        }
-        return false;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole())
+                .build();
     }
 
-    public List<Task> getUserTasks() {
-        User currentUser = securityContextService.getCurrentUser();
-        return taskRepository.findByUser(currentUser);
+    public User login(LoginRequest loginRequest) {
+        return userRepository.findByEmail(loginRequest.getEmail())
+                .filter(user -> passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
+                .orElse(null);
+    }
+
+    public List<Task> getUserTasks(Long userId) {
+        User user = getUserById(userId);
+        return taskRepository.findByUser(user);
     }
 }
