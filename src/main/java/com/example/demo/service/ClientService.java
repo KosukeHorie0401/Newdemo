@@ -4,12 +4,16 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.dto.ClientDTO;
+import com.example.demo.dto.UserDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.User;
 import com.example.demo.repository.ClientRepository;
 import com.example.demo.repository.UserRepository;
+
 import jakarta.transaction.Transactional;
 
 @Service
@@ -22,7 +26,10 @@ public class ClientService {
     private UserRepository userRepository;
 
     @Autowired
-    private UserService userService;
+    private PasswordEncoder passwordEncoder;
+
+    // @Autowired
+    // private UserService userService;
 
     public List<Client> getAllClients() {
         return clientRepository.findAll();
@@ -40,15 +47,44 @@ public class ClientService {
     }
 
     @Transactional
-    public Client saveClientWithUsers(Client client) {
-        Client savedClient = createClient(client);
-        if (client.getUsers() != null) {
-            for (User user : client.getUsers()) {
+    public Client saveClientWithUsers(ClientDTO clientDTO) {
+        Client client = convertToEntity(clientDTO);
+        Client savedClient = clientRepository.save(client);
+        
+        if (clientDTO.getUsers() != null) {
+            for (UserDTO userDTO : clientDTO.getUsers()) {
+                User user = convertToUserEntity(userDTO);
                 user.setClient(savedClient);
-                userService.createUser(user);
+                userRepository.save(user);
             }
         }
+        
         return savedClient;
+    }
+
+    private Client convertToEntity(ClientDTO clientDTO) {
+        Client client = new Client();
+        client.setCompanyName(clientDTO.getCompanyName());
+        client.setRepresentativeName(clientDTO.getRepresentativeName());
+        client.setContactPersonName(clientDTO.getContactPersonName());
+        client.setAddress(clientDTO.getAddress());
+        client.setPhone(clientDTO.getPhone());
+        client.setEmail(clientDTO.getEmail());
+        client.setWebsiteUrl(clientDTO.getWebsiteUrl());
+        client.setContractStartDate(clientDTO.getContractStartDate());
+        client.setMeetingHistory(clientDTO.getMeetingHistory());
+        client.setReferralRecord(clientDTO.getReferralRecord());
+        client.setPriority(Client.Priority.valueOf(clientDTO.getPriority()));
+        return client;
+    }
+
+    private User convertToUserEntity(UserDTO userDTO) {
+        User user = new User();
+        user.setUsername(userDTO.getUsername());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword())); // パスワードをエンコード
+        user.setRole(userDTO.getRole());
+        return user;
     }
 
     public Client updateClient(Long id, Client clientDetails) {

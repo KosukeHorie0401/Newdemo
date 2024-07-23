@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.Task;
 import com.example.demo.repository.TaskRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TaskService {
@@ -29,5 +30,10 @@ public class TaskService {
 
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void saveBulkTasks(List<Task> tasks) {
+        taskRepository.saveAll(tasks);
     }
 }
