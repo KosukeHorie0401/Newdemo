@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.time.YearMonth;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.TaskDTO;
+import com.example.demo.dto.UserDTO;
 import com.example.demo.entity.Client;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
@@ -71,26 +68,15 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
+    public ResponseEntity<UserDTO> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
         User user = userService.login(loginRequest);
         if (user != null) {
             session.setAttribute("userId", user.getId());
             session.setAttribute("userRole", user.getRole());
-            SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(user.getId(), null, 
-                    Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
-                )
-            );
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", user.getId());
-            response.put("username", user.getUsername());
-            response.put("email", user.getEmail());
-            response.put("role", user.getRole());
-            return ResponseEntity.ok()
-                .header("X-Session-ID", session.getId())
-                .body(response);
+            UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+            return ResponseEntity.ok(userDTO);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
